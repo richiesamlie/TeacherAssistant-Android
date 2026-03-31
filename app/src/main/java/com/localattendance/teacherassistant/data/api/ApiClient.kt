@@ -66,7 +66,7 @@ class ApiClient(private val context: Context) {
 
     companion object {
         const val DEFAULT_BASE_URL = "http://10.0.2.2:3000/api/"
-        const val PREF_BASE_URL = "base_url"
+        const val PREF_BASE_URL = "server_url"
 
         @Volatile
         private var INSTANCE: ApiService? = null
