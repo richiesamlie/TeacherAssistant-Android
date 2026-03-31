@@ -74,7 +74,7 @@ The backend will run at `http://localhost:3000`
 
 ```bash
 # Clone this repository
-git clone https://github.com/yourusername/TeacherAssistant-Android.git
+git clone https://github.com/richiesamlie/TeacherAssistant-Android.git
 cd TeacherAssistant-Android
 
 # Open in Android Studio
@@ -89,7 +89,7 @@ cd TeacherAssistant-Android
 
 ### Option 2: Download APK
 
-Download the latest APK from the [Releases](https://github.com/yourusername/TeacherAssistant-Android/releases) page.
+Download the latest APK from the [Releases](https://github.com/richiesamlie/TeacherAssistant-Android/releases) page.
 
 ## Configuration
 
