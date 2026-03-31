@@ -22,9 +22,8 @@ jobs:
 
       - name: Download Gradle Wrapper
         run: |
-          curl -L -o gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v8.2.0/gradle/wrapper/gradle-wrapper.jar
           mkdir -p gradle/wrapper
-          mv gradle-wrapper.jar gradle/wrapper/
+          curl -L -o gradle/wrapper/gradle-wrapper.jar https://github.com/gradle/gradle/raw/v8.7.0/gradle/wrapper/gradle-wrapper.jar
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
