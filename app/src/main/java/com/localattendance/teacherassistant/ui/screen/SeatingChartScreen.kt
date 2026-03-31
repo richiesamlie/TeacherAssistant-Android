@@ -165,8 +165,8 @@ fun SeatingChartScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                         Button(
                             onClick = {
-                                selectedClass?.let {
-                                    seatingViewModel.updateSeat(it, selectedSeat!!, null)
+                                selectedClass?.let { cls ->
+                                    seatingViewModel.updateSeat(cls.id, selectedSeat!!, null)
                                 }
                                 showAssignDialog = false
                             },
@@ -195,8 +195,8 @@ fun SeatingChartScreen(
                             item {
                                 Button(
                                     onClick = {
-                                        selectedClass?.let {
-                                            seatingViewModel.updateSeat(it, selectedSeat!!, student.id)
+                                        selectedClass?.let { cls ->
+                                            seatingViewModel.updateSeat(cls.id, selectedSeat!!, student.id)
                                         }
                                         showAssignDialog = false
                                     },

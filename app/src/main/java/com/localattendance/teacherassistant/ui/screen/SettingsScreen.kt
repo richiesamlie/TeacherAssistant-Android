@@ -98,7 +98,7 @@ fun SettingsScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                Icons.Default.Class_,
+                                Icons.Default.School,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary
                             )
