@@ -37,25 +37,36 @@ class ApiClient(private val context: Context) {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
-    private val okHttpClient = OkHttpClient.Builder()
-        .cookieJar(cookieJar)
-        .addInterceptor(loggingInterceptor)
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .writeTimeout(30, TimeUnit.SECONDS)
-        .build()
+    fun getBaseUrl(): String {
+        return prefs.getString(PREF_BASE_URL, DEFAULT_BASE_URL) ?: DEFAULT_BASE_URL
+    }
 
-    fun createApiService(baseUrl: String = BASE_URL): ApiService {
+    fun setBaseUrl(url: String) {
+        prefs.edit().putString(PREF_BASE_URL, url).apply()
+        clearInstance()
+    }
+
+    fun createApiService(baseUrl: String? = null): ApiService {
+        val url = baseUrl ?: getBaseUrl()
         return Retrofit.Builder()
-            .baseUrl(baseUrl)
-            .client(okHttpClient)
+            .baseUrl(url)
+            .client(
+                OkHttpClient.Builder()
+                    .cookieJar(cookieJar)
+                    .addInterceptor(loggingInterceptor)
+                    .connectTimeout(30, TimeUnit.SECONDS)
+                    .readTimeout(30, TimeUnit.SECONDS)
+                    .writeTimeout(30, TimeUnit.SECONDS)
+                    .build()
+            )
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(ApiService::class.java)
     }
 
     companion object {
-        const val BASE_URL = "http://10.0.2.2:3000/api/"
+        const val DEFAULT_BASE_URL = "http://10.0.2.2:3000/api/"
+        const val PREF_BASE_URL = "base_url"
 
         @Volatile
         private var INSTANCE: ApiService? = null
@@ -64,6 +75,10 @@ class ApiClient(private val context: Context) {
             return INSTANCE ?: synchronized(this) {
                 INSTANCE ?: ApiClient(context).createApiService().also { INSTANCE = it }
             }
+        }
+
+        fun clearInstance() {
+            INSTANCE = null
         }
     }
 }

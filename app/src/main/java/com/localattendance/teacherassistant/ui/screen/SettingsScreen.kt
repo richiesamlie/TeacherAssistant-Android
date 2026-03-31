@@ -1,5 +1,7 @@
 package com.localattendance.teacherassistant.ui.screen
 
+import android.content.Context
+import android.content.SharedPreferences
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -8,8 +10,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.localattendance.teacherassistant.data.api.ApiClient
 import com.localattendance.teacherassistant.ui.viewmodel.AuthViewModel
 import com.localattendance.teacherassistant.ui.viewmodel.ClassViewModel
 
@@ -20,11 +25,25 @@ fun SettingsScreen(
     authViewModel: AuthViewModel = viewModel(),
     classViewModel: ClassViewModel = viewModel()
 ) {
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE) }
+
     val currentUser by authViewModel.currentUser.collectAsState()
     val classes by classViewModel.classes.collectAsState()
 
     var showCreateClassDialog by remember { mutableStateOf(false) }
     var newClassName by remember { mutableStateOf("") }
+
+    var serverUrl by remember {
+        mutableStateOf(
+            prefs.getString("server_url", ApiClient.DEFAULT_BASE_URL)
+                ?: ApiClient.DEFAULT_BASE_URL
+        )
+    }
+    var showServerUrlDialog by remember { mutableStateOf(false) }
+    var tempServerUrl by remember { mutableStateOf(serverUrl) }
+
+    var urlSaved by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         classViewModel.loadClasses()
@@ -63,6 +82,122 @@ fun SettingsScreen(
                         text = "Username: ${currentUser?.username ?: "Unknown"}",
                         style = MaterialTheme.typography.bodyMedium
                     )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Server Configuration",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Enter the URL of your Teacher Assistant backend server. The URL must end with /api/",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedTextField(
+                            value = serverUrl,
+                            onValueChange = {
+                                serverUrl = it
+                                urlSaved = false
+                            },
+                            label = { Text("Server URL") },
+                            modifier = Modifier.weight(1f),
+                            singleLine = true,
+                            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                                keyboardType = KeyboardType.Uri
+                            ),
+                            isError = serverUrl.isNotBlank() && !serverUrl.endsWith("/api/"),
+                            supportingText = {
+                                if (serverUrl.isNotBlank() && !serverUrl.endsWith("/api/")) {
+                                    Text("URL must end with /api/")
+                                }
+                            }
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = {
+                                if (serverUrl.endsWith("/api/")) {
+                                    prefs.edit().putString("server_url", serverUrl).apply()
+                                    ApiClient.clearInstance()
+                                    urlSaved = true
+                                }
+                            },
+                            enabled = serverUrl.endsWith("/api/") && serverUrl.isNotBlank()
+                        ) {
+                            if (urlSaved) {
+                                Icon(Icons.Default.Check, contentDescription = null)
+                            } else {
+                                Icon(Icons.Default.Save, contentDescription = null)
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        FilledTonalButton(
+                            onClick = {
+                                serverUrl = "http://10.0.2.2:3000/api/"
+                                prefs.edit().putString("server_url", serverUrl).apply()
+                                ApiClient.clearInstance()
+                                urlSaved = true
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.PhoneAndroid, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Emulator")
+                        }
+                        FilledTonalButton(
+                            onClick = {
+                                serverUrl = "http://192.168.1.100:3000/api/"
+                                prefs.edit().putString("server_url", serverUrl).apply()
+                                ApiClient.clearInstance()
+                                urlSaved = true
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.Wifi, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Network")
+                        }
+                        FilledTonalButton(
+                            onClick = {
+                                serverUrl = "http://localhost:3000/api/"
+                                prefs.edit().putString("server_url", serverUrl).apply()
+                                ApiClient.clearInstance()
+                                urlSaved = true
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.Computer, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Localhost")
+                        }
+                    }
+
+                    if (urlSaved) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "✓ Server URL saved. Restart the app to apply.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             }
 
@@ -138,29 +273,6 @@ fun SettingsScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Server Configuration",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "To connect to a different server, update the BASE_URL in the app settings.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Current: http://10.0.2.2:3000/api/",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
                 }
             }
 
